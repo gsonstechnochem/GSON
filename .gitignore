@@ -40,3 +40,7 @@ next-env.d.ts
 
 # OS
 Thumbs.db
+
+# Nested repos / workspace folders that should not be tracked
+/GSONS WEB/
+/GSONS WEBSITE/
