@@ -3,6 +3,29 @@ import { products as staticProducts } from '@/data/products'
 import { testimonials as staticTestimonials } from '@/data/testimonials'
 import { faqs as staticFaqs } from '@/data/faqs'
 
+// Normalize a Supabase products row (snake_case) into the camelCase shape
+// the public site components (ProductCard, product detail, cart) expect.
+// This is the single source of truth so DB schema changes don't ripple across UI.
+function normalizeProduct(row: any) {
+  if (!row) return row
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    category: row.category,
+    price: typeof row.price === 'string' ? parseFloat(row.price) : row.price,
+    packSize: row.pack_size ?? row.packSize ?? '',
+    shortDescription: row.short_description ?? row.shortDescription ?? '',
+    description: row.description ?? '',
+    image: row.image_url ?? row.image ?? '',
+    advantages: row.advantages ?? [],
+    recommendedFor: row.recommended_for ?? row.recommendedFor ?? [],
+    applicationGuidelines: row.application_guidelines ?? row.applicationGuidelines ?? [],
+    stock: row.stock ?? 0,
+    featured: row.featured ?? false,
+  }
+}
+
 export async function fetchProductBySlug(slug: string) {
   if (!isSupabaseConfigured()) {
     return staticProducts.find(p => p.slug === slug) || null
@@ -17,7 +40,7 @@ export async function fetchProductBySlug(slug: string) {
       .single()
 
     if (error) throw error
-    return data || staticProducts.find(p => p.slug === slug) || null
+    return data ? normalizeProduct(data) : (staticProducts.find(p => p.slug === slug) || null)
   } catch (error) {
     console.error(`Error fetching product ${slug} from Supabase, using fallback:`, error)
     return staticProducts.find(p => p.slug === slug) || null
@@ -37,7 +60,7 @@ export async function fetchProductsWithFallback() {
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data || staticProducts
+    return data && data.length > 0 ? data.map(normalizeProduct) : staticProducts
   } catch (error) {
     console.error('Error fetching products from Supabase, using fallback:', error)
     return staticProducts

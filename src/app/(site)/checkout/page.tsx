@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation'
 import { useCart } from '@/components/CartProvider'
 import { formatPrice, generateOrderId } from '@/lib/utils'
 import { ArrowLeft, CreditCard, Truck } from 'lucide-react'
-import Header from '@/components/Header'
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -78,9 +77,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-background py-16 md:py-20">
+    <div className="min-h-screen bg-background py-16 md:py-20">
         <div className="container mx-auto px-4">
           <button
             onClick={() => router.back()}
@@ -317,6 +314,5 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
-    </>
   )
 }

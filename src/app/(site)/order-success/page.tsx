@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, ShoppingBag, MessageCircle, Home, ArrowRight } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
-import Header from '@/components/Header'
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams()
@@ -23,22 +22,19 @@ function OrderSuccessContent() {
 
   if (!order) {
     return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-background py-20">
-          <div className="container mx-auto px-4">
-            <div className="max-w-md mx-auto text-center">
-              <h1 className="text-2xl font-bold text-dark mb-4">Order Not Found</h1>
-              <Link
-                href="/"
-                className="inline-flex items-center justify-center bg-primary text-white px-8 py-4 rounded-xl font-semibold hover:bg-primary-dark transition-all hover:shadow-lg hover:shadow-primary/30"
-              >
-                Go to Home
-              </Link>
-            </div>
+      <div className="min-h-screen bg-background py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-md mx-auto text-center">
+            <h1 className="text-2xl font-bold text-dark mb-4">Order Not Found</h1>
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center bg-primary text-white px-8 py-4 rounded-xl font-semibold hover:bg-primary-dark transition-all hover:shadow-lg hover:shadow-primary/30"
+            >
+              Go to Home
+            </Link>
           </div>
         </div>
-      </>
+      </div>
     )
   }
 
@@ -46,9 +42,7 @@ function OrderSuccessContent() {
   const whatsappLink = `https://wa.me/918485998487?text=${encodeURIComponent(whatsappMessage)}`
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-background py-16 md:py-20">
+    <div className="min-h-screen bg-background py-16 md:py-20">
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto">
             {/* Success Message */}
@@ -178,26 +172,22 @@ function OrderSuccessContent() {
           </div>
         </div>
       </div>
-    </>
   )
 }
 
 export default function OrderSuccessPage() {
   return (
     <Suspense fallback={
-      <>
-        <Header />
-        <div className="min-h-screen bg-background py-20">
-          <div className="container mx-auto px-4">
-            <div className="max-w-md mx-auto text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                <ShoppingBag className="w-8 h-8 text-gray-400" />
-              </div>
-              <p className="text-gray-600">Loading...</p>
+      <div className="min-h-screen bg-background py-20">
+        <div className="container mx-auto px-4">
+          <div className="max-w-md mx-auto text-center">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+              <ShoppingBag className="w-8 h-8 text-gray-400" />
             </div>
+            <p className="text-gray-600">Loading...</p>
           </div>
         </div>
-      </>
+      </div>
     }>
       <OrderSuccessContent />
     </Suspense>

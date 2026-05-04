@@ -6,7 +6,6 @@ import Image from 'next/image'
 import { useCart } from '@/components/CartProvider'
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
-import Header from '@/components/Header'
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, getCartTotal, getCartCount } = useCart()
@@ -15,9 +14,7 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-background py-20">
+      <div className="min-h-screen bg-background py-20">
           <div className="container mx-auto px-4">
             <div className="max-w-md mx-auto text-center">
               <div className="w-32 h-32 bg-gradient-to-br from-primary/10 to-accent/10 rounded-full flex items-center justify-center mx-auto mb-8">
@@ -37,14 +34,11 @@ export default function CartPage() {
             </div>
           </div>
         </div>
-      </>
     )
   }
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-background py-16 md:py-20">
+    <div className="min-h-screen bg-background py-16 md:py-20">
         <div className="container mx-auto px-4">
           <h1 className="text-3xl md:text-4xl font-bold text-dark mb-8">Shopping Cart</h1>
 
@@ -147,6 +141,5 @@ export default function CartPage() {
           </div>
         </div>
       </div>
-    </>
   )
 }

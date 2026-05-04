@@ -1,15 +1,12 @@
 import React from 'react'
 import Link from 'next/link'
 import { MapPin, Phone, Mail, MessageCircle, Clock, ArrowRight } from 'lucide-react'
-import Header from '@/components/Header'
 
 export default function ContactPage() {
   const whatsappLink = 'https://wa.me/918485998487?text=Hello%20G%20Son%E2%80%99s%20Technochem%2C%20I%20want%20to%20inquire%20about%20your%20products.'
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-background py-16 md:py-20">
+    <div className="min-h-screen bg-background py-16 md:py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold text-dark mb-6">Get In Touch</h1>
@@ -211,6 +208,5 @@ export default function ContactPage() {
           </div>
         </div>
       </div>
-    </>
   )
 }

@@ -4,14 +4,12 @@ import FeaturedProducts from '@/components/FeaturedProducts'
 import CTASection from '@/components/CTASection'
 import TestimonialSection from '@/components/TestimonialSection'
 import FAQSection from '@/components/FAQSection'
-import Header from '@/components/Header'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, Package, Settings, Truck, Shield, Droplets, Phone, MessageCircle } from 'lucide-react'
 
 export default function Home() {
   return (
     <>
-      <Header />
       <HeroSection />
       <USPStrip />
       

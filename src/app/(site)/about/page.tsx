@@ -2,7 +2,6 @@ import React from 'react'
 import Link from 'next/link'
 import { Award, Target, Users, Shield, ArrowRight } from 'lucide-react'
 import { fetchSiteContent } from '@/lib/fetchData'
-import Header from '@/components/Header'
 
 export default async function AboutPage() {
   const aboutContent = await fetchSiteContent('about_page', {
@@ -13,9 +12,7 @@ export default async function AboutPage() {
   })
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-background py-16 md:py-20">
+    <div className="min-h-screen bg-background py-16 md:py-20">
         <div className="container mx-auto px-4">
           {/* Hero Section */}
           <div className="text-center mb-16">
@@ -209,6 +206,5 @@ export default async function AboutPage() {
           </div>
         </div>
       </div>
-    </>
   )
 }

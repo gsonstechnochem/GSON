@@ -1,15 +1,12 @@
 import React from 'react'
 import { fetchProductsWithFallback } from '@/lib/fetchData'
 import ProductCard from '@/components/ProductCard'
-import Header from '@/components/Header'
 
 export default async function ProductsPage() {
   const products = await fetchProductsWithFallback()
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-background py-16 md:py-20">
+    <div className="min-h-screen bg-background py-16 md:py-20">
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="text-center mb-16">
@@ -29,6 +26,5 @@ export default async function ProductsPage() {
           </div>
         </div>
       </div>
-    </>
   )
 }

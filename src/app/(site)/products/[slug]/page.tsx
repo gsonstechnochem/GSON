@@ -5,7 +5,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ShoppingCart, MessageCircle, ArrowLeft, Check, Package, Settings, Info } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
-import Header from '@/components/Header'
 
 export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
   const product = await fetchProductBySlug(params.slug)
@@ -18,9 +17,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
   const whatsappLink = `https://wa.me/918485998487?text=${encodeURIComponent(whatsappMessage)}`
 
   return (
-    <>
-      <Header />
-      <div className="min-h-screen bg-background py-16 md:py-20">
+    <div className="min-h-screen bg-background py-16 md:py-20">
         <div className="container mx-auto px-4">
           <Link
             href="/products"
@@ -172,6 +169,5 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
           </div>
         </div>
       </div>
-    </>
   )
 }
