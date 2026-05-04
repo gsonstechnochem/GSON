@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Mail, Lock, AlertCircle, LogOut } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
+import { isSupabaseConfigured } from '@/lib/supabaseClient'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -22,6 +23,12 @@ export default function AdminLoginPage() {
     let timeoutId: NodeJS.Timeout
     
     const checkAuth = async () => {
+      // Check if Supabase is configured
+      if (!isSupabaseConfigured()) {
+        setError('Supabase environment variables missing. Please check your configuration.')
+        return
+      }
+
       // Add timeout to prevent infinite loading
       timeoutId = setTimeout(() => {
         console.error('Login auth check timeout - staying on login page')
@@ -33,7 +40,7 @@ export default function AdminLoginPage() {
         clearTimeout(timeoutId)
         
         if (session) {
-          router.push('/admin/dashboard')
+          router.replace('/admin/dashboard')
         }
       } catch (error) {
         console.error('Auth check error on login page:', error)
@@ -46,16 +53,23 @@ export default function AdminLoginPage() {
     return () => {
       if (timeoutId) clearTimeout(timeoutId)
     }
-  }, [])
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
 
+    // Check if Supabase is configured
+    if (!isSupabaseConfigured()) {
+      setError('Supabase environment variables missing. Please check your configuration.')
+      setIsLoading(false)
+      return
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
+        email: formData.email.trim().toLowerCase(),
         password: formData.password
       })
 
@@ -66,9 +80,10 @@ export default function AdminLoginPage() {
       }
 
       if (data.session) {
-        router.push('/admin/dashboard')
+        router.replace('/admin/dashboard')
       }
     } catch (err) {
+      console.error('Login error:', err)
       setError('An unexpected error occurred. Please try again.')
       setIsLoading(false)
     }
