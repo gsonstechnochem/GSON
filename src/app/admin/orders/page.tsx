@@ -11,11 +11,16 @@ interface Order {
   id: string
   order_number: string
   customer_name: string
-  customer_email: string
-  customer_phone: string
+  email: string
+  phone: string
   total_amount: number
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
-  shipping_address: string
+  order_status: 'pending' | 'confirmed' | 'packed' | 'shipped' | 'delivered' | 'cancelled'
+  payment_status: 'pending' | 'paid' | 'failed' | 'refunded'
+  address: string
+  city: string
+  state: string
+  pincode: string
+  notes: string
   created_at: string
 }
 
@@ -47,12 +52,13 @@ export default function AdminOrdersPage() {
   }
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = 
-      order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer_email.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter
+    const matchesSearch =
+      order.order_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.phone || '').toLowerCase().includes(searchTerm.toLowerCase())
+
+    const matchesStatus = statusFilter === 'all' || order.order_status === statusFilter
 
     return matchesSearch && matchesStatus
   })
@@ -61,8 +67,10 @@ export default function AdminOrdersPage() {
     switch (status) {
       case 'pending':
         return 'bg-yellow-100 text-yellow-700'
-      case 'processing':
+      case 'confirmed':
         return 'bg-blue-100 text-blue-700'
+      case 'packed':
+        return 'bg-indigo-100 text-indigo-700'
       case 'shipped':
         return 'bg-purple-100 text-purple-700'
       case 'delivered':
@@ -78,7 +86,7 @@ export default function AdminOrdersPage() {
     try {
       const { error } = await supabase
         .from('orders')
-        .update({ status: newStatus })
+        .update({ order_status: newStatus })
         .eq('id', orderId)
 
       if (error) throw error
@@ -115,7 +123,8 @@ export default function AdminOrdersPage() {
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="packed">Packed</option>
               <option value="shipped">Shipped</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
@@ -163,12 +172,14 @@ export default function AdminOrdersPage() {
                       <div className="space-y-1">
                         <div className="flex items-center text-sm">
                           <Phone className="w-3 h-3 text-gray-400 mr-1" />
-                          <span className="text-gray-600">{order.customer_phone}</span>
+                          <span className="text-gray-600">{order.phone}</span>
                         </div>
-                        <div className="flex items-center text-sm">
-                          <Mail className="w-3 h-3 text-gray-400 mr-1" />
-                          <span className="text-gray-600">{order.customer_email}</span>
-                        </div>
+                        {order.email && (
+                          <div className="flex items-center text-sm">
+                            <Mail className="w-3 h-3 text-gray-400 mr-1" />
+                            <span className="text-gray-600">{order.email}</span>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -179,12 +190,13 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-4">
                       <select
-                        value={order.status}
+                        value={order.order_status}
                         onChange={(e) => updateOrderStatus(order.id, e.target.value)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(order.status)} appearance-none cursor-pointer`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(order.order_status)} appearance-none cursor-pointer`}
                       >
                         <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="packed">Packed</option>
                         <option value="shipped">Shipped</option>
                         <option value="delivered">Delivered</option>
                         <option value="cancelled">Cancelled</option>
@@ -236,8 +248,8 @@ export default function AdminOrdersPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 mb-1">Status</p>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(selectedOrder.status)}`}>
-                    {selectedOrder.status}
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(selectedOrder.order_status)}`}>
+                    {selectedOrder.order_status}
                   </span>
                 </div>
                 <div>
@@ -255,12 +267,14 @@ export default function AdminOrdersPage() {
                 <div className="space-y-2">
                   <div className="flex items-center text-sm">
                     <Phone className="w-4 h-4 text-gray-400 mr-2" />
-                    <span className="text-dark">{selectedOrder.customer_phone}</span>
+                    <span className="text-dark">{selectedOrder.phone}</span>
                   </div>
-                  <div className="flex items-center text-sm">
-                    <Mail className="w-4 h-4 text-gray-400 mr-2" />
-                    <span className="text-dark">{selectedOrder.customer_email}</span>
-                  </div>
+                  {selectedOrder.email && (
+                    <div className="flex items-center text-sm">
+                      <Mail className="w-4 h-4 text-gray-400 mr-2" />
+                      <span className="text-dark">{selectedOrder.email}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -268,7 +282,9 @@ export default function AdminOrdersPage() {
                 <p className="text-sm text-gray-600 mb-1">Shipping Address</p>
                 <div className="flex items-start text-sm">
                   <MapPin className="w-4 h-4 text-gray-400 mr-2 mt-0.5" />
-                  <span className="text-dark">{selectedOrder.shipping_address}</span>
+                  <span className="text-dark">
+                    {[selectedOrder.address, selectedOrder.city, selectedOrder.state, selectedOrder.pincode].filter(Boolean).join(', ')}
+                  </span>
                 </div>
               </div>
 

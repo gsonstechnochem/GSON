@@ -83,7 +83,7 @@ export default function AdminDashboardPage() {
         supabase.from('products').select('id, active, featured'),
         supabase.from('testimonials').select('id'),
         supabase.from('faqs').select('id'),
-        supabase.from('orders').select('id, status').order('created_at', { ascending: false })
+        supabase.from('orders').select('id, order_status').order('created_at', { ascending: false })
       ])
 
       const products = productsRes.data || []
@@ -94,8 +94,8 @@ export default function AdminDashboardPage() {
         activeProducts: products.filter(p => p.active).length,
         featuredProducts: products.filter(p => p.featured).length,
         totalOrders: orders.length,
-        pendingOrders: orders.filter(o => o.status === 'pending').length,
-        completedOrders: orders.filter(o => o.status === 'delivered').length,
+        pendingOrders: orders.filter(o => o.order_status === 'pending').length,
+        completedOrders: orders.filter(o => o.order_status === 'delivered').length,
         testimonials: testimonialsRes.data?.length || 0,
         faqs: faqsRes.data?.length || 0
       })
@@ -364,12 +364,12 @@ export default function AdminDashboardPage() {
                     <td className="py-3 px-4 text-sm">₹{order.total_amount}</td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        order.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        order.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
-                        order.status === 'delivered' ? 'bg-green-100 text-green-700' :
+                        order.order_status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                        order.order_status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                        order.order_status === 'delivered' ? 'bg-green-100 text-green-700' :
                         'bg-gray-100 text-gray-700'
                       }`}>
-                        {order.status}
+                        {order.order_status}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-600">

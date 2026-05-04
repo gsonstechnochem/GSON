@@ -59,20 +59,20 @@ export default function AdminProductsPage() {
   const loadProducts = async () => {
     setLoading(true)
     setError(null)
-    
+
     try {
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Data fetch timeout')), 5000)
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Data fetch timeout')), 8000)
       )
 
-      await Promise.race([
+      const result = await Promise.race([
         supabase.from('products').select('*').order('created_at', { ascending: false }),
-        timeoutPromise
+        timeoutPromise,
       ])
 
-      const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false })
-      if (data) setProducts(data)
+      const { data, error } = result as { data: Product[] | null; error: any }
       if (error) throw error
+      setProducts(data || [])
     } catch (err) {
       console.error('Error loading products:', err)
       setError('Unable to load products. Check Supabase connection.')

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { 
   LayoutDashboard, 
@@ -24,12 +24,17 @@ import { ToastProvider } from '@/components/ToastProvider'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
+  const pathname = usePathname()
+  const isLoginPage = pathname === '/admin/login'
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
+    // Skip auth check on the login page so it can render its own form
+    if (isLoginPage) return
+
     let timeoutId: NodeJS.Timeout
-    
+
     const checkAuth = async () => {
       // Add timeout to prevent infinite loading
       timeoutId = setTimeout(() => {
@@ -40,7 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       try {
         const { data: { session } } = await supabase.auth.getSession()
         clearTimeout(timeoutId)
-        
+
         if (!session) {
           router.push('/admin/login')
           return
@@ -52,13 +57,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         router.push('/admin/login')
       }
     }
-    
+
     checkAuth()
 
     return () => {
       if (timeoutId) clearTimeout(timeoutId)
     }
-  }, [])
+  }, [isLoginPage, router])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -75,6 +80,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { icon: HelpCircle, label: 'FAQs', href: '/admin/faqs' },
     { icon: Settings, label: 'Contact Settings', href: '/admin/settings' },
   ]
+
+  // Login page renders its own UI without the admin shell
+  if (isLoginPage) {
+    return <ToastProvider>{children}</ToastProvider>
+  }
 
   if (!isAuthenticated) {
     return (

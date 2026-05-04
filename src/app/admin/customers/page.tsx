@@ -40,18 +40,18 @@ export default function AdminCustomersPage() {
 
       if (error) throw error
 
-      // Group by customer email to get unique customers
+      // Group by customer phone (or email if available) to get unique customers
       const customerMap = new Map<string, Customer>()
 
-      orders.forEach((order: any) => {
-        const email = order.customer_email
-        if (!customerMap.has(email)) {
-          customerMap.set(email, {
+      ;(orders || []).forEach((order: any) => {
+        const key = order.email || order.phone || order.id
+        if (!customerMap.has(key)) {
+          customerMap.set(key, {
             id: order.id,
             name: order.customer_name,
-            email: order.customer_email,
-            phone: order.customer_phone,
-            address: order.shipping_address,
+            email: order.email || '',
+            phone: order.phone || '',
+            address: [order.address, order.city, order.state, order.pincode].filter(Boolean).join(', '),
             total_orders: 0,
             total_spent: 0,
             last_order_date: order.created_at,
@@ -59,9 +59,9 @@ export default function AdminCustomersPage() {
           })
         }
 
-        const customer = customerMap.get(email)!
+        const customer = customerMap.get(key)!
         customer.total_orders += 1
-        customer.total_spent += order.total_amount || 0
+        customer.total_spent += Number(order.total_amount) || 0
         if (new Date(order.created_at) > new Date(customer.last_order_date)) {
           customer.last_order_date = order.created_at
         }
@@ -75,11 +75,11 @@ export default function AdminCustomersPage() {
   }
 
   const filteredCustomers = customers.filter(customer => {
-    const matchesSearch = 
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.phone.includes(searchTerm)
-    
+    const matchesSearch =
+      (customer.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (customer.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (customer.phone || '').includes(searchTerm)
+
     return matchesSearch
   })
 

@@ -37,21 +37,20 @@ export default function AdminTestimonialsPage() {
   const loadTestimonials = async () => {
     setLoading(true)
     setError(null)
-    
+
     try {
-      // Add timeout to prevent infinite loading
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Data fetch timeout')), 5000)
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Data fetch timeout')), 8000)
       )
 
-      await Promise.race([
+      const result = await Promise.race([
         supabase.from('testimonials').select('*').order('created_at', { ascending: false }),
-        timeoutPromise
+        timeoutPromise,
       ])
 
-      const { data, error } = await supabase.from('testimonials').select('*').order('created_at', { ascending: false })
-      if (data) setTestimonials(data)
+      const { data, error } = result as { data: Testimonial[] | null; error: any }
       if (error) throw error
+      setTestimonials(data || [])
     } catch (err) {
       console.error('Error loading testimonials:', err)
       setError('Unable to load testimonials. Check Supabase connection.')
