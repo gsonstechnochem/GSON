@@ -3,7 +3,7 @@
 // Force dynamic rendering to prevent build errors
 export const dynamic = 'force-dynamic'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/components/CartProvider'
 import { formatPrice, generateOrderId } from '@/lib/utils'
@@ -67,8 +67,13 @@ export default function CheckoutPage() {
     router.push(`/order-success?orderId=${orderId}`)
   }
 
+  useEffect(() => {
+    if (cart.length === 0) {
+      router.push('/cart')
+    }
+  }, [cart.length, router])
+
   if (cart.length === 0) {
-    router.push('/cart')
     return null
   }
 
