@@ -40,6 +40,8 @@ export default function AdminDashboardPage() {
   const [syncStatus, setSyncStatus] = useState<{ success: boolean; message: string; results?: any } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [supabaseConnected, setSupabaseConnected] = useState(false)
+  const [lastSynced, setLastSynced] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()
@@ -50,6 +52,10 @@ export default function AdminDashboardPage() {
     setError(null)
     
     try {
+      // Check Supabase connection
+      const { data: { session } } = await supabase.auth.getSession()
+      setSupabaseConnected(!!session)
+
       // Add timeout to prevent infinite loading
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Data fetch timeout')), 5000)
@@ -65,6 +71,7 @@ export default function AdminDashboardPage() {
     } catch (err) {
       console.error('Error loading dashboard data:', err)
       setError('Unable to load admin data. Check Supabase connection.')
+      setSupabaseConnected(false)
     } finally {
       setLoading(false)
     }
@@ -122,6 +129,8 @@ export default function AdminDashboardPage() {
     setSyncStatus(result)
 
     if (result.success) {
+      // Update last synced time
+      setLastSynced(new Date().toLocaleString())
       // Reload stats after successful sync
       await loadStats()
     }
@@ -135,7 +144,6 @@ export default function AdminDashboardPage() {
   const quickActions = [
     { icon: Package, label: 'Add Product', href: '/admin/products', color: 'bg-blue-500' },
     { icon: Home, label: 'Edit Home Content', href: '/admin/content', color: 'bg-green-500' },
-    { icon: FileText, label: 'Edit About Content', href: '/admin/about-content', color: 'bg-purple-500' },
     { icon: MessageSquare, label: 'Add Testimonial', href: '/admin/testimonials', color: 'bg-orange-500' },
     { icon: HelpCircle, label: 'Add FAQ', href: '/admin/faqs', color: 'bg-pink-500' },
     { icon: Settings, label: 'Contact Settings', href: '/admin/settings', color: 'bg-gray-500' },
@@ -174,7 +182,20 @@ export default function AdminDashboardPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-dark">Dashboard</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-dark">Dashboard</h1>
+          <div className="flex items-center gap-4 mt-2">
+            <div className={`flex items-center text-sm ${supabaseConnected ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`w-2 h-2 rounded-full mr-2 ${supabaseConnected ? 'bg-green-600' : 'bg-red-600'}`}></div>
+              {supabaseConnected ? 'Connected' : 'Disconnected'}
+            </div>
+            {lastSynced && (
+              <div className="text-sm text-gray-500">
+                Last synced: {lastSynced}
+              </div>
+            )}
+          </div>
+        </div>
         <button
           onClick={handleSync}
           disabled={syncing}
@@ -251,6 +272,46 @@ export default function AdminDashboardPage() {
             <span className="text-sm text-gray-500">Pending</span>
           </div>
           <p className="text-3xl font-bold text-dark">{stats.pendingOrders}</p>
+          <p className="text-sm text-gray-600">Orders</p>
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+              <MessageSquare className="w-6 h-6 text-purple-600" />
+            </div>
+            <span className="text-sm text-gray-500">Total</span>
+          </div>
+          <p className="text-3xl font-bold text-dark">{stats.testimonials}</p>
+          <p className="text-sm text-gray-600">Testimonials</p>
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+              <HelpCircle className="w-6 h-6 text-pink-600" />
+            </div>
+            <span className="text-sm text-gray-500">Total</span>
+          </div>
+          <p className="text-3xl font-bold text-dark">{stats.faqs}</p>
+          <p className="text-sm text-gray-600">FAQs</p>
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+              <Package className="w-6 h-6 text-yellow-600" />
+            </div>
+            <span className="text-sm text-gray-500">Featured</span>
+          </div>
+          <p className="text-3xl font-bold text-dark">{stats.featuredProducts}</p>
+          <p className="text-sm text-gray-600">Products</p>
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center">
+              <ShoppingCart className="w-6 h-6 text-teal-600" />
+            </div>
+            <span className="text-sm text-gray-500">Completed</span>
+          </div>
+          <p className="text-3xl font-bold text-dark">{stats.completedOrders}</p>
           <p className="text-sm text-gray-600">Orders</p>
         </div>
       </div>

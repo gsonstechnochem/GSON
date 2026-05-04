@@ -308,7 +308,7 @@ export async function syncWebsiteData() {
               description: product.description,
               price: product.price,
               pack_size: product.packSize,
-              image: product.image,
+              image_url: product.image,
               advantages: product.advantages,
               recommended_for: product.recommendedFor,
               application_guidelines: product.applicationGuidelines,
