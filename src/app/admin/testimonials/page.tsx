@@ -11,8 +11,10 @@ interface Testimonial {
   id: string
   name: string
   role: string
+  company?: string
   message: string
   rating: number
+  image_url?: string
   active: boolean
 }
 
@@ -23,8 +25,10 @@ export default function AdminTestimonialsPage() {
   const [formData, setFormData] = useState({
     name: '',
     role: '',
+    company: '',
     message: '',
     rating: 5,
+    image_url: '',
     active: true
   })
   const [loading, setLoading] = useState(true)
@@ -64,8 +68,10 @@ export default function AdminTestimonialsPage() {
     setFormData({
       name: testimonial.name,
       role: testimonial.role,
+      company: testimonial.company || '',
       message: testimonial.message,
       rating: testimonial.rating,
+      image_url: testimonial.image_url || '',
       active: testimonial.active
     })
     setIsEditing(true)
@@ -97,8 +103,10 @@ export default function AdminTestimonialsPage() {
       setFormData({
         name: '',
         role: '',
+        company: '',
         message: '',
         rating: 5,
+        image_url: '',
         active: true
       })
       loadTestimonials()
@@ -114,8 +122,10 @@ export default function AdminTestimonialsPage() {
     setFormData({
       name: '',
       role: '',
+      company: '',
       message: '',
       rating: 5,
+      image_url: '',
       active: true
     })
   }
@@ -253,6 +263,29 @@ export default function AdminTestimonialsPage() {
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Civil Contractor"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-dark mb-2">Company</label>
+              <input
+                type="text"
+                value={formData.company}
+                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="Patel Construction"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark mb-2">Profile Image URL</label>
+              <input
+                type="url"
+                value={formData.image_url}
+                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                placeholder="https://..."
               />
             </div>
           </div>

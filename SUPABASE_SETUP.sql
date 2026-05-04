@@ -61,12 +61,18 @@ CREATE TABLE IF NOT EXISTS testimonials (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   name TEXT NOT NULL,
   role TEXT,
+  company TEXT,
   message TEXT NOT NULL,
   rating INTEGER DEFAULT 5 CHECK (rating >= 1 AND rating <= 5),
+  image_url TEXT,
   active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Add columns if upgrading an existing testimonials table
+ALTER TABLE testimonials ADD COLUMN IF NOT EXISTS company TEXT;
+ALTER TABLE testimonials ADD COLUMN IF NOT EXISTS image_url TEXT;
 
 -- Create index on active status
 CREATE INDEX IF NOT EXISTS idx_testimonials_active ON testimonials(active);

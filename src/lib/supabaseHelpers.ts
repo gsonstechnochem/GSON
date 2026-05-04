@@ -300,7 +300,6 @@ export async function syncWebsiteData() {
           const { error } = await supabase
             .from('products')
             .insert({
-              id: product.id,
               slug: product.slug,
               name: product.name,
               category: product.category,
@@ -347,12 +346,12 @@ export async function syncWebsiteData() {
           const { error } = await supabase
             .from('testimonials')
             .insert({
-              id: testimonial.id,
               name: testimonial.name,
               role: testimonial.role,
-              message: testimonial.content, // Map content to message
+              company: testimonial.company,
+              message: testimonial.content,
               rating: testimonial.rating,
-              image: testimonial.image,
+              image_url: testimonial.image,
               active: true
             })
 
@@ -385,11 +384,10 @@ export async function syncWebsiteData() {
           const { error } = await supabase
             .from('faqs')
             .insert({
-              id: faq.id,
               question: faq.question,
               answer: faq.answer,
               category: faq.category,
-              order: parseInt(faq.id),
+              order: parseInt(faq.id) || 0,
               active: true
             })
 

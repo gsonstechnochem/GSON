@@ -6,6 +6,19 @@ import { faqs as staticFaqs } from '@/data/faqs'
 // Normalize a Supabase products row (snake_case) into the camelCase shape
 // the public site components (ProductCard, product detail, cart) expect.
 // This is the single source of truth so DB schema changes don't ripple across UI.
+function normalizeTestimonial(row: any) {
+  if (!row) return row
+  return {
+    id: row.id,
+    name: row.name,
+    role: row.role ?? '',
+    company: row.company ?? '',
+    content: row.message ?? row.content ?? '',
+    rating: row.rating ?? 5,
+    image: row.image_url ?? row.image ?? '',
+  }
+}
+
 function normalizeProduct(row: any) {
   if (!row) return row
   return {
@@ -80,7 +93,7 @@ export async function fetchTestimonialsWithFallback() {
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data || staticTestimonials
+    return data && data.length > 0 ? data.map(normalizeTestimonial) : staticTestimonials
   } catch (error) {
     console.error('Error fetching testimonials from Supabase, using fallback:', error)
     return staticTestimonials
