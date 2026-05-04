@@ -62,10 +62,16 @@ export default function AdminLoginPage() {
 
     // Check if Supabase is configured
     if (!isSupabaseConfigured()) {
+      console.error('Supabase environment variables missing:', {
+        url: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING',
+        key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'MISSING'
+      })
       setError('Supabase environment variables missing. Please check your configuration.')
       setIsLoading(false)
       return
     }
+
+    console.log('Attempting login with email:', formData.email.trim().toLowerCase())
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -73,17 +79,24 @@ export default function AdminLoginPage() {
         password: formData.password
       })
 
+      console.log('Auth response:', { data, error })
+
       if (error) {
-        setError(error.message)
+        console.error('Login error:', error)
+        setError(error.message || 'Invalid login credentials')
         setIsLoading(false)
         return
       }
 
       if (data.session) {
+        console.log('Login successful, redirecting to dashboard')
         router.replace('/admin/dashboard')
+      } else {
+        setError('No session returned. Please try again.')
+        setIsLoading(false)
       }
     } catch (err) {
-      console.error('Login error:', err)
+      console.error('Unexpected login error:', err)
       setError('An unexpected error occurred. Please try again.')
       setIsLoading(false)
     }
