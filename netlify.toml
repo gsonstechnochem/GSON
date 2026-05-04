@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+
+# IMPORTANT: do NOT set `publish` for Next.js sites.
+# The @netlify/plugin-nextjs plugin will set the correct publish directory
+# (.next) automatically and provision the Next.js runtime on Netlify.
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
