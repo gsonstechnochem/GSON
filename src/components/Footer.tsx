@@ -1,9 +1,26 @@
-import React from 'react'
+'use client'
+
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Phone, Mail, MapPin, Facebook, Instagram, Linkedin } from 'lucide-react'
+import { fetchContactSettings } from '@/lib/fetchData'
 
 export default function Footer() {
+  const [contactSettings, setContactSettings] = useState<any>({})
+
+  useEffect(() => {
+    async function fetchSettings() {
+      try {
+        const data = await fetchContactSettings()
+        setContactSettings(data)
+      } catch (error) {
+        console.error('Error fetching contact settings:', error)
+      }
+    }
+    fetchSettings()
+  }, [])
+
   return (
     <footer className="bg-gradient-to-br from-primary via-primary-dark to-dark text-white">
       <div className="container mx-auto px-4 py-16">
@@ -22,18 +39,24 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-gray-300 text-sm mb-6 leading-relaxed">
-              Faith of Generations. Industry-grade tile adhesive, epoxy grout, cement grout, and waterproofing solutions for builders, contractors, and construction professionals.
+              {contactSettings.company_name || "G Son's Technochem"} - Faith of Generations. Industry-grade tile adhesive, epoxy grout, cement grout, and waterproofing solutions.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-accent transition-colors">
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-accent transition-colors">
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a href="#" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-accent transition-colors">
-                <Linkedin className="w-5 h-5" />
-              </a>
+              {contactSettings.social_facebook && (
+                <a href={contactSettings.social_facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-accent transition-colors">
+                  <Facebook className="w-5 h-5" />
+                </a>
+              )}
+              {contactSettings.social_instagram && (
+                <a href={contactSettings.social_instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-accent transition-colors">
+                  <Instagram className="w-5 h-5" />
+                </a>
+              )}
+              {contactSettings.social_linkedin && (
+                <a href={contactSettings.social_linkedin} target="_blank" rel="noopener noreferrer" className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-accent transition-colors">
+                  <Linkedin className="w-5 h-5" />
+                </a>
+              )}
             </div>
           </div>
 
@@ -100,38 +123,46 @@ export default function Footer() {
           <div>
             <h3 className="font-bold text-lg mb-6">Contact Us</h3>
             <ul className="space-y-4">
-              <li className="flex items-start">
-                <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
-                  <MapPin className="w-5 h-5 text-accent" />
-                </div>
-                <span className="text-gray-300 text-sm leading-relaxed">
-                  5 Golden Estate, Near Maruti Suzuki Showroom, Chhatral Kadi Highway, Kadi – 384440
-                </span>
-              </li>
-              <li className="flex items-center">
-                <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
-                  <Phone className="w-5 h-5 text-accent" />
-                </div>
-                <a href="tel:8485998487" className="text-gray-300 text-sm hover:text-white transition-colors">
-                  8485998487
-                </a>
-              </li>
-              <li className="flex items-center">
-                <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
-                  <Phone className="w-5 h-5 text-accent" />
-                </div>
-                <a href="tel:7016717742" className="text-gray-300 text-sm hover:text-white transition-colors">
-                  7016717742
-                </a>
-              </li>
-              <li className="flex items-center">
-                <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
-                  <Mail className="w-5 h-5 text-accent" />
-                </div>
-                <a href="mailto:gsonstechnochem@gmail.com" className="text-gray-300 text-sm hover:text-white transition-colors">
-                  gsonstechnochem@gmail.com
-                </a>
-              </li>
+              {contactSettings.address && (
+                <li className="flex items-start">
+                  <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center mr-3 flex-shrink-0 mt-0.5">
+                    <MapPin className="w-5 h-5 text-accent" />
+                  </div>
+                  <span className="text-gray-300 text-sm leading-relaxed">
+                    {contactSettings.address}{contactSettings.city && `, ${contactSettings.city}`}{contactSettings.state && `, ${contactSettings.state}`}{contactSettings.pincode && ` - ${contactSettings.pincode}`}
+                  </span>
+                </li>
+              )}
+              {contactSettings.phone && (
+                <li className="flex items-center">
+                  <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                    <Phone className="w-5 h-5 text-accent" />
+                  </div>
+                  <a href={`tel:${contactSettings.phone}`} className="text-gray-300 text-sm hover:text-white transition-colors">
+                    {contactSettings.phone}
+                  </a>
+                </li>
+              )}
+              {contactSettings.whatsapp_number && (
+                <li className="flex items-center">
+                  <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                    <Phone className="w-5 h-5 text-accent" />
+                  </div>
+                  <a href={`tel:${contactSettings.whatsapp_number}`} className="text-gray-300 text-sm hover:text-white transition-colors">
+                    {contactSettings.whatsapp_number}
+                  </a>
+                </li>
+              )}
+              {contactSettings.email && (
+                <li className="flex items-center">
+                  <div className="w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
+                    <Mail className="w-5 h-5 text-accent" />
+                  </div>
+                  <a href={`mailto:${contactSettings.email}`} className="text-gray-300 text-sm hover:text-white transition-colors">
+                    {contactSettings.email}
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
         </div>
@@ -140,7 +171,7 @@ export default function Footer() {
         <div className="border-t border-white/10 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-400 text-sm mb-4 md:mb-0">
-              © {new Date().getFullYear()} G Son&apos;s Technochem. All rights reserved.
+              © {new Date().getFullYear()} {contactSettings.company_name || "G Son's Technochem"}. All rights reserved.
             </p>
             <div className="text-center md:text-right">
               <p className="text-gray-400 text-sm">

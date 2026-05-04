@@ -1,103 +1,123 @@
 'use client'
 
-import React, { useState } from 'react'
+// Force dynamic rendering to prevent caching issues
+export const dynamic = 'force-dynamic'
+
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Lock, User, AlertCircle } from 'lucide-react'
+import { Mail, Lock, AlertCircle, LogOut } from 'lucide-react'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function AdminLoginPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   })
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+    
+    const checkAuth = async () => {
+      // Add timeout to prevent infinite loading
+      timeoutId = setTimeout(() => {
+        console.error('Login auth check timeout - staying on login page')
+        setIsLoading(false)
+      }, 3000)
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        clearTimeout(timeoutId)
+        
+        if (session) {
+          router.push('/admin/dashboard')
+        }
+      } catch (error) {
+        console.error('Auth check error on login page:', error)
+        clearTimeout(timeoutId)
+      }
+    }
+    
+    checkAuth()
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
 
-    // Simple authentication check (in production, this should be server-side)
-    const ADMIN_USERNAME = 'admin'
-    const ADMIN_PASSWORD = 'admin123'
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password
+      })
 
-    if (formData.username === ADMIN_USERNAME && formData.password === ADMIN_PASSWORD) {
-      // Store admin session in localStorage
-      localStorage.setItem('admin_session', JSON.stringify({
-        username: formData.username,
-        loginTime: new Date().toISOString()
-      }))
-      router.push('/admin/dashboard')
-    } else {
-      setError('Invalid username or password')
+      if (error) {
+        setError(error.message)
+        setIsLoading(false)
+        return
+      }
+
+      if (data.session) {
+        router.push('/admin/dashboard')
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.')
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-      <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-dark mb-2">Admin Login</h1>
-          <p className="text-gray-600">Sign in to access the admin dashboard</p>
-        </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-dark mb-2">Admin Panel</h1>
+            <p className="text-gray-600">Sign in to manage your website</p>
+          </div>
 
-        <div className="bg-white rounded-xl p-8 shadow-sm">
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start">
-              <AlertCircle className="w-5 h-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start">
+              <AlertCircle className="w-5 h-5 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-red-700">{error}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-dark mb-2">
-                Username
-              </label>
+              <label className="block text-sm font-medium text-dark mb-2">Email Address</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="w-5 h-5 text-gray-400" />
-                </div>
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
-                  type="text"
-                  id="username"
-                  name="username"
+                  type="email"
                   required
-                  value={formData.username}
-                  onChange={handleInputChange}
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="Enter username"
+                  placeholder="admin@example.com"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-dark mb-2">
-                Password
-              </label>
+              <label className="block text-sm font-medium text-dark mb-2">Password</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="w-5 h-5 text-gray-400" />
-                </div>
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="password"
-                  id="password"
-                  name="password"
                   required
                   value={formData.password}
-                  onChange={handleInputChange}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                  placeholder="Enter password"
+                  placeholder="••••••••"
                 />
               </div>
             </div>
@@ -111,20 +131,15 @@ export default function AdminLoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
+          <div className="mt-6 pt-6 border-t border-gray-200 text-center">
             <Link
               href="/"
-              className="flex items-center justify-center text-sm text-gray-600 hover:text-primary transition-colors"
+              className="inline-flex items-center text-gray-600 hover:text-primary transition-colors text-sm"
             >
-              Back to Home
+              <LogOut className="w-4 h-4 mr-2" />
+              Back to Website
             </Link>
           </div>
-        </div>
-
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            Default credentials: admin / admin123
-          </p>
         </div>
       </div>
     </div>

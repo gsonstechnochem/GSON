@@ -2,8 +2,18 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, CheckCircle2, Shield, Droplets, Truck, Phone } from 'lucide-react'
+import { fetchSiteContent } from '@/lib/fetchData'
 
-export default function HeroSection() {
+export default async function HeroSection() {
+  const heroContent = await fetchSiteContent('home_hero', {
+    title: "India's Trusted Tile Adhesive & Epoxy Grout Manufacturer",
+    subtitle: "Stronger Bonds. Flawless Finishes.",
+    content: "High-performance tile adhesive, epoxy grout, cement grout, and waterproofing solutions for builders, contractors, and construction professionals.",
+    image_url: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80",
+    button_text: "Explore Products",
+    button_link: "/products"
+  })
+
   const badges = [
     { icon: CheckCircle2, label: 'High Strength' },
     { icon: Shield, label: 'Crack Resistant' },
@@ -36,13 +46,17 @@ export default function HeroSection() {
 
             <div className="space-y-4">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                India&apos;s Trusted <span className="text-accent">Tile Adhesive</span> & Epoxy Grout Manufacturer
+                {heroContent.title.split(' ').map((word: string, i: number) => 
+                  word === 'Tile' || word === 'Adhesive' || word === 'Epoxy' || word === 'Grout' 
+                    ? <span key={i} className="text-accent">{word} </span>
+                    : <span key={i}>{word} </span>
+                )}
               </h1>
               <p className="text-lg md:text-xl font-semibold text-accent">
-                Stronger Bonds. Flawless Finishes.
+                {heroContent.subtitle}
               </p>
               <p className="text-base md:text-lg text-gray-200 max-w-xl leading-relaxed">
-                High-performance tile adhesive, epoxy grout, cement grout, and waterproofing solutions for builders, contractors, and construction professionals.
+                {heroContent.content}
               </p>
             </div>
 
@@ -62,10 +76,10 @@ export default function HeroSection() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
               <Link
-                href="/products"
+                href={heroContent.button_link || "/products"}
                 className="inline-flex items-center justify-center bg-accent text-white px-6 md:px-8 py-3.5 md:py-4 rounded-xl font-semibold hover:bg-accent-dark transition-all duration-300 hover:shadow-lg hover:shadow-accent/30 active:scale-95"
               >
-                Explore Products
+                {heroContent.button_text || "Explore Products"}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
               <Link
@@ -100,7 +114,7 @@ export default function HeroSection() {
               {/* Main Image */}
               <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white/10">
                 <Image
-                  src="https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80"
+                  src={heroContent.image_url || "https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80"}
                   alt="Construction chemicals application"
                   fill
                   className="object-cover"

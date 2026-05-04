@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { testimonials } from '@/data/testimonials'
+import { fetchTestimonialsWithFallback } from '@/lib/fetchData'
 import Image from 'next/image'
 import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react'
 
@@ -9,8 +9,22 @@ export default function TestimonialSection() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [itemsPerView, setItemsPerView] = useState(1)
   const [isPaused, setIsPaused] = useState(false)
+  const [testimonials, setTestimonials] = useState<any[]>([])
   const touchStartX = useRef(0)
   const touchEndX = useRef(0)
+
+  // Fetch testimonials from Supabase on mount
+  useEffect(() => {
+    async function fetchTestimonials() {
+      try {
+        const data = await fetchTestimonialsWithFallback()
+        setTestimonials(data)
+      } catch (error) {
+        console.error('Error fetching testimonials:', error)
+      }
+    }
+    fetchTestimonials()
+  }, [])
 
   // Responsive items per view
   useEffect(() => {
@@ -97,7 +111,7 @@ export default function TestimonialSection() {
                   <div className="bg-white rounded-2xl p-6 md:p-7 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 h-full flex flex-col">
                     <Quote className="w-8 h-8 text-accent/30 mb-3" />
                     <div className="flex mb-4">
-                      {[...Array(testimonial.rating)].map((_, i) => (
+                      {[...Array(testimonial.rating || 5)].map((_, i) => (
                         <Star key={i} className="w-4 h-4 fill-accent text-accent" />
                       ))}
                     </div>
@@ -107,7 +121,7 @@ export default function TestimonialSection() {
                     <div className="flex items-center pt-4 border-t border-gray-100">
                       <div className="relative w-12 h-12 rounded-full overflow-hidden mr-4 flex-shrink-0 ring-2 ring-primary/10">
                         <Image
-                          src={testimonial.image}
+                          src={testimonial.image || '/placeholder-avatar.png'}
                           alt={testimonial.name}
                           fill
                           className="object-cover"

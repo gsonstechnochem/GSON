@@ -1,11 +1,24 @@
 'use client'
 
-import React, { useState } from 'react'
-import { faqs } from '@/data/faqs'
+import React, { useState, useEffect } from 'react'
+import { fetchFAQsWithFallback } from '@/lib/fetchData'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
 export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const [faqs, setFaqs] = useState<any[]>([])
+
+  useEffect(() => {
+    async function fetchFAQs() {
+      try {
+        const data = await fetchFAQsWithFallback()
+        setFaqs(data)
+      } catch (error) {
+        console.error('Error fetching FAQs:', error)
+      }
+    }
+    fetchFAQs()
+  }, [])
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index)
