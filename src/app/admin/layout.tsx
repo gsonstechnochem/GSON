@@ -3,20 +3,21 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Users, 
-  FileText, 
-  MessageSquare, 
-  HelpCircle, 
-  Settings, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
+  FileText,
+  MessageSquare,
+  HelpCircle,
+  Settings,
+  LogOut,
   Menu,
   X,
   Home,
-  FileEdit
+  FileEdit,
+  Inbox
 } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import Image from 'next/image'
@@ -75,6 +76,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { icon: Package, label: 'Products', href: '/admin/products' },
     { icon: ShoppingCart, label: 'Orders', href: '/admin/orders' },
     { icon: Users, label: 'Customers', href: '/admin/customers' },
+    { icon: Inbox, label: 'Leads', href: '/admin/leads' },
     { icon: Home, label: 'Home Content', href: '/admin/content' },
     { icon: MessageSquare, label: 'Testimonials', href: '/admin/testimonials' },
     { icon: HelpCircle, label: 'FAQs', href: '/admin/faqs' },
