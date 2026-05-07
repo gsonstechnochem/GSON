@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS contact_settings (
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS orders (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  order_number TEXT UNIQUE NOT NULL,
+  order_number TEXT UNIQUE,
   customer_name TEXT NOT NULL,
   customer_phone TEXT NOT NULL,
   customer_email TEXT,
@@ -126,15 +126,31 @@ CREATE TABLE IF NOT EXISTS orders (
   pincode TEXT,
   total_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
   payment_method TEXT DEFAULT 'cod' CHECK (payment_method IN ('cod','online')),
-  order_status TEXT DEFAULT 'pending' CHECK (order_status IN ('pending','confirmed','packed','shipped','delivered','cancelled')),
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending','confirmed','packed','shipped','delivered','cancelled')),
   tracking_id TEXT,
   courier_partner TEXT,
   notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(order_status);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_orders_phone ON orders(customer_phone);
+
+-- Migration: Alter order_number to be nullable and generate if missing
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'order_number' AND is_nullable = 'NO') THEN
+    ALTER TABLE orders ALTER COLUMN order_number DROP NOT NULL;
+  END IF;
+END $$;
+
+-- Migration: Rename order_status to status if old column exists
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'order_status') THEN
+    ALTER TABLE orders RENAME COLUMN order_status TO status;
+  END IF;
+END $$;
 
 -- ============================================================================
 -- 7. ORDER_ITEMS
@@ -245,12 +261,24 @@ CREATE POLICY "Public can insert orders" ON orders
   FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Authenticated full access orders" ON orders
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Public cannot select orders" ON orders
+  FOR SELECT TO anon USING (false);
+CREATE POLICY "Public cannot update orders" ON orders
+  FOR UPDATE TO anon USING (false);
+CREATE POLICY "Public cannot delete orders" ON orders
+  FOR DELETE TO anon USING (false);
 
 -- order_items: same pattern - public insert, authenticated full access
 CREATE POLICY "Public can insert order_items" ON order_items
   FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Authenticated full access order_items" ON order_items
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Public cannot select order_items" ON order_items
+  FOR SELECT TO anon USING (false);
+CREATE POLICY "Public cannot update order_items" ON order_items
+  FOR UPDATE TO anon USING (false);
+CREATE POLICY "Public cannot delete order_items" ON order_items
+  FOR DELETE TO anon USING (false);
 
 -- leads: public CAN insert (contact form), only authenticated can read
 CREATE POLICY "Public can insert leads" ON leads

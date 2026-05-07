@@ -47,19 +47,19 @@ function OrderSuccessContent() {
               id: o.order_number,
               order_number: o.order_number,
               name: o.customer_name,
-              phone: o.phone,
-              email: o.email,
+              phone: o.customer_phone,
+              email: o.customer_email,
               address: o.address,
               city: o.city,
               state: o.state,
               pincode: o.pincode,
-              paymentMethod: 'cod',
+              paymentMethod: o.payment_method || 'cod',
               total: Number(o.total_amount) || 0,
               items: (items || []).map((it: any) => ({
                 product: { id: it.product_id || it.id, name: it.product_name, price: Number(it.price) || 0 },
                 quantity: it.quantity,
               })),
-              status: o.order_status,
+              status: o.status,
               createdAt: o.created_at,
             })
           }
