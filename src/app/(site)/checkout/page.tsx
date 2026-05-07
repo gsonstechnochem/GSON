@@ -45,9 +45,8 @@ export default function CheckoutPage() {
 
     const orderNumber = generateOrderId()
 
-    // Build order payload (snake_case to match Supabase schema)
-    const orderRow = {
-      order_number: orderNumber,
+    // Build order payload (exact DB columns only)
+    const orderPayload = {
       customer_name: formData.name,
       customer_phone: formData.phone,
       customer_email: formData.email,
@@ -55,9 +54,9 @@ export default function CheckoutPage() {
       city: formData.city,
       state: formData.state,
       pincode: formData.pincode,
-      notes: formData.notes,
-      payment_method: formData.paymentMethod,
-      total_amount: cartTotal,
+      notes: formData.notes || null,
+      payment_method: "COD",
+      total_amount: cartTotal
     }
 
     // Persist a local copy first so the success page can render instantly
@@ -78,26 +77,25 @@ export default function CheckoutPage() {
     // Save to Supabase if configured
     if (isSupabaseConfigured()) {
       try {
-        console.log('Checkout insert payload:', JSON.stringify(orderRow, null, 2))
-        console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-        console.log('Supabase anon key configured:', Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY))
+        console.log("ORDER PAYLOAD:", orderPayload)
+        console.log("SUPABASE URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
 
-        const { data: inserted, error: orderErr } = await supabase
-          .from('orders')
-          .insert(orderRow)
-          .select('id')
+        const { data: orderData, error: orderError } = await supabase
+          .from("orders")
+          .insert([orderPayload])
+          .select()
           .single()
 
-        if (orderErr) {
-          console.error('Order insert error:', orderErr)
-          throw orderErr
+        if (orderError) {
+          console.error('Order insert error:', orderError)
+          throw orderError
         }
 
-        console.log('Order inserted successfully, ID:', inserted?.id)
+        console.log('Order inserted successfully, ID:', orderData?.id)
 
-        const orderId = inserted?.id
+        const orderId = orderData?.id
         if (orderId && cart.length > 0) {
-          const items = cart.map((item) => ({
+          const orderItemsPayload = cart.map((item) => ({
             order_id: orderId,
             product_id: typeof item.product.id === 'string' && item.product.id.length > 20 ? item.product.id : null,
             product_name: item.product.name,
@@ -105,10 +103,10 @@ export default function CheckoutPage() {
             price: item.product.price,
             subtotal: item.product.price * item.quantity,
           }))
-          console.log('Order items payload:', JSON.stringify(items, null, 2))
-          const { error: itemsErr } = await supabase.from('order_items').insert(items)
-          if (itemsErr) {
-            console.error('order_items insert failed:', itemsErr)
+          console.log("ORDER ITEMS PAYLOAD:", orderItemsPayload)
+          const { error: itemsError } = await supabase.from("order_items").insert(orderItemsPayload)
+          if (itemsError) {
+            console.error('order_items insert failed:', itemsError)
           } else {
             console.log('Order items inserted successfully')
           }
