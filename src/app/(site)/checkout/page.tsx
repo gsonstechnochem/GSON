@@ -49,16 +49,15 @@ export default function CheckoutPage() {
     const orderRow = {
       order_number: orderNumber,
       customer_name: formData.name,
-      phone: formData.phone,
-      email: formData.email,
+      customer_phone: formData.phone,
+      customer_email: formData.email,
       address: formData.address,
       city: formData.city,
       state: formData.state,
       pincode: formData.pincode,
       notes: formData.notes,
+      payment_method: formData.paymentMethod,
       total_amount: cartTotal,
-      payment_status: 'pending',
-      order_status: 'pending',
     }
 
     // Persist a local copy first so the success page can render instantly
@@ -79,13 +78,22 @@ export default function CheckoutPage() {
     // Save to Supabase if configured
     if (isSupabaseConfigured()) {
       try {
+        console.log('Checkout insert payload:', JSON.stringify(orderRow, null, 2))
+        console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+        console.log('Supabase anon key configured:', Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY))
+
         const { data: inserted, error: orderErr } = await supabase
           .from('orders')
           .insert(orderRow)
           .select('id')
           .single()
 
-        if (orderErr) throw orderErr
+        if (orderErr) {
+          console.error('Order insert error:', orderErr)
+          throw orderErr
+        }
+
+        console.log('Order inserted successfully, ID:', inserted?.id)
 
         const orderId = inserted?.id
         if (orderId && cart.length > 0) {
@@ -97,8 +105,13 @@ export default function CheckoutPage() {
             price: item.product.price,
             subtotal: item.product.price * item.quantity,
           }))
+          console.log('Order items payload:', JSON.stringify(items, null, 2))
           const { error: itemsErr } = await supabase.from('order_items').insert(items)
-          if (itemsErr) console.error('order_items insert failed:', itemsErr)
+          if (itemsErr) {
+            console.error('order_items insert failed:', itemsErr)
+          } else {
+            console.log('Order items inserted successfully')
+          }
         }
       } catch (err: any) {
         console.error('Order save failed:', err)

@@ -118,14 +118,14 @@ CREATE TABLE IF NOT EXISTS orders (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   order_number TEXT UNIQUE NOT NULL,
   customer_name TEXT NOT NULL,
-  phone TEXT NOT NULL,
-  email TEXT,
+  customer_phone TEXT NOT NULL,
+  customer_email TEXT,
   address TEXT,
   city TEXT,
   state TEXT,
   pincode TEXT,
   total_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
-  payment_status TEXT DEFAULT 'pending' CHECK (payment_status IN ('pending','paid','failed','refunded')),
+  payment_method TEXT DEFAULT 'cod' CHECK (payment_method IN ('cod','online')),
   order_status TEXT DEFAULT 'pending' CHECK (order_status IN ('pending','confirmed','packed','shipped','delivered','cancelled')),
   tracking_id TEXT,
   courier_partner TEXT,
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS orders (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(order_status);
-CREATE INDEX IF NOT EXISTS idx_orders_phone ON orders(phone);
+CREATE INDEX IF NOT EXISTS idx_orders_phone ON orders(customer_phone);
 
 -- ============================================================================
 -- 7. ORDER_ITEMS
