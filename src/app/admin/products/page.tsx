@@ -7,6 +7,8 @@ import React, { useState, useEffect } from 'react'
 import { Plus, Edit, Trash2, Save, X, Package, Search, Filter, Upload, Loader2, AlertCircle, RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { uploadImage } from '@/lib/supabaseHelpers'
+import { useToast } from '@/components/ToastProvider'
+import ConfirmModal from '@/components/ConfirmModal'
 
 interface Product {
   id: string
@@ -27,6 +29,7 @@ interface Product {
 }
 
 export default function AdminProductsPage() {
+  const { showToast } = useToast()
   const [products, setProducts] = useState<Product[]>([])
   const [isEditing, setIsEditing] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
@@ -35,6 +38,8 @@ export default function AdminProductsPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -102,14 +107,18 @@ export default function AdminProductsPage() {
     setIsEditing(true)
   }
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      try {
-        await supabase.from('products').delete().eq('id', id)
-        loadProducts()
-      } catch (error) {
-        console.error('Error deleting product:', error)
-      }
+  const confirmDelete = async () => {
+    if (!deleteId) return
+    try {
+      const { error } = await supabase.from('products').delete().eq('id', deleteId)
+      if (error) throw error
+      showToast('success', 'Product deleted')
+      setDeleteId(null)
+      loadProducts()
+    } catch (err: any) {
+      console.error('Error deleting product:', err)
+      showToast('error', err?.message || 'Could not delete product')
+      setDeleteId(null)
     }
   }
 
@@ -121,13 +130,16 @@ export default function AdminProductsPage() {
     const imageUrl = await uploadImage(file, 'products')
     if (imageUrl) {
       setFormData({ ...formData, image_url: imageUrl })
+      showToast('success', 'Image uploaded')
+    } else {
+      showToast('error', 'Image upload failed. Make sure the gsons-images storage bucket exists and is public.')
     }
     setIsUploading(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+    setSaving(true)
     try {
       const productData = {
         name: formData.name,
@@ -147,9 +159,13 @@ export default function AdminProductsPage() {
       }
 
       if (editingProduct) {
-        await supabase.from('products').update(productData).eq('id', editingProduct.id)
+        const { error } = await supabase.from('products').update(productData).eq('id', editingProduct.id)
+        if (error) throw error
+        showToast('success', 'Product updated')
       } else {
-        await supabase.from('products').insert(productData)
+        const { error } = await supabase.from('products').insert(productData)
+        if (error) throw error
+        showToast('success', 'Product added')
       }
 
       setIsEditing(false)
@@ -171,9 +187,11 @@ export default function AdminProductsPage() {
         application_guidelines: ''
       })
       loadProducts()
-    } catch (error) {
-      console.error('Error saving product:', error)
-      alert('Error saving product. Please try again.')
+    } catch (err: any) {
+      console.error('Error saving product:', err)
+      showToast('error', err?.message || 'Error saving product. Please try again.')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -334,7 +352,7 @@ export default function AdminProductsPage() {
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(product.id)}
+                          onClick={() => setDeleteId(product.id)}
                           className="p-2 text-gray-600 hover:text-red-500 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -348,6 +366,14 @@ export default function AdminProductsPage() {
           </div>
         )}
         </div>
+        <ConfirmModal
+          isOpen={!!deleteId}
+          title="Delete Product"
+          message="Are you sure you want to delete this product? This cannot be undone."
+          confirmText="Delete"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleteId(null)}
+        />
       </div>
     )
   }
@@ -569,10 +595,11 @@ export default function AdminProductsPage() {
           <div className="flex gap-4 pt-6 border-t">
             <button
               type="submit"
-              className="flex items-center bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors"
+              disabled={saving || isUploading}
+              className="flex items-center bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="w-4 h-4 mr-2" />
-              {editingProduct ? 'Update Product' : 'Add Product'}
+              {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+              {saving ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product')}
             </button>
             <button
               type="button"

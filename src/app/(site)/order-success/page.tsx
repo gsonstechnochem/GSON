@@ -5,20 +5,87 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, ShoppingBag, MessageCircle, Home, ArrowRight } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
+import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient'
 
 function OrderSuccessContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get('orderId')
   const [order, setOrder] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (orderId) {
-      const storedOrder = localStorage.getItem(`order_${orderId}`)
-      if (storedOrder) {
-        setOrder(JSON.parse(storedOrder))
+    if (!orderId) { setLoading(false); return }
+    let cancelled = false
+
+    async function load() {
+      // 1. localStorage (instant) — written by checkout
+      try {
+        const stored = localStorage.getItem(`order_${orderId}`)
+        if (stored && !cancelled) {
+          setOrder(JSON.parse(stored))
+          setLoading(false)
+          return
+        }
+      } catch {}
+
+      // 2. Supabase fallback (e.g. user reopens link on another device)
+      if (isSupabaseConfigured()) {
+        try {
+          const { data: o } = await supabase
+            .from('orders')
+            .select('*')
+            .eq('order_number', orderId)
+            .single()
+
+          if (o && !cancelled) {
+            const { data: items } = await supabase
+              .from('order_items')
+              .select('*')
+              .eq('order_id', o.id)
+
+            setOrder({
+              id: o.order_number,
+              order_number: o.order_number,
+              name: o.customer_name,
+              phone: o.phone,
+              email: o.email,
+              address: o.address,
+              city: o.city,
+              state: o.state,
+              pincode: o.pincode,
+              paymentMethod: 'cod',
+              total: Number(o.total_amount) || 0,
+              items: (items || []).map((it: any) => ({
+                product: { id: it.product_id || it.id, name: it.product_name, price: Number(it.price) || 0 },
+                quantity: it.quantity,
+              })),
+              status: o.order_status,
+              createdAt: o.created_at,
+            })
+          }
+        } catch (err) {
+          console.error('Supabase order fetch failed:', err)
+        }
       }
+      if (!cancelled) setLoading(false)
     }
+
+    load()
+    return () => { cancelled = true }
   }, [orderId])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background py-20 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+            <ShoppingBag className="w-8 h-8 text-gray-400" />
+          </div>
+          <p className="text-gray-600">Loading your order...</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!order) {
     return (

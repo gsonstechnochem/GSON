@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import { useCart } from '@/components/CartProvider'
 import { formatPrice, generateOrderId } from '@/lib/utils'
 import { ArrowLeft, CreditCard, Truck } from 'lucide-react'
+import { supabase, isSupabaseConfigured } from '@/lib/supabaseClient'
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -27,6 +28,7 @@ export default function CheckoutPage() {
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -37,33 +39,77 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (cart.length === 0) return
     setIsSubmitting(true)
+    setSubmitError(null)
 
-    // TODO: Integrate payment gateway (Razorpay/Stripe)
-    // Currently using COD mode - add online payment integration here
-    // 1. Create order in Supabase
-    // 2. Initiate payment with Razorpay/Stripe
-    // 3. Handle payment success/failure
-    // 4. Update order status in Supabase
+    const orderNumber = generateOrderId()
 
-    // Simulate order processing
-    const orderId = generateOrderId()
-    
-    // Store order in localStorage (in production, this would go to a database)
-    const order = {
-      id: orderId,
+    // Build order payload (snake_case to match Supabase schema)
+    const orderRow = {
+      order_number: orderNumber,
+      customer_name: formData.name,
+      phone: formData.phone,
+      email: formData.email,
+      address: formData.address,
+      city: formData.city,
+      state: formData.state,
+      pincode: formData.pincode,
+      notes: formData.notes,
+      total_amount: cartTotal,
+      payment_status: 'pending',
+      order_status: 'pending',
+    }
+
+    // Persist a local copy first so the success page can render instantly
+    // even if Supabase is slow / unreachable.
+    const localOrder = {
+      id: orderNumber,
+      order_number: orderNumber,
       ...formData,
       items: cart,
       total: cartTotal,
       status: 'pending',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     }
-    
-    localStorage.setItem(`order_${orderId}`, JSON.stringify(order))
+    try {
+      localStorage.setItem(`order_${orderNumber}`, JSON.stringify(localOrder))
+    } catch {}
+
+    // Save to Supabase if configured
+    if (isSupabaseConfigured()) {
+      try {
+        const { data: inserted, error: orderErr } = await supabase
+          .from('orders')
+          .insert(orderRow)
+          .select('id')
+          .single()
+
+        if (orderErr) throw orderErr
+
+        const orderId = inserted?.id
+        if (orderId && cart.length > 0) {
+          const items = cart.map((item) => ({
+            order_id: orderId,
+            product_id: typeof item.product.id === 'string' && item.product.id.length > 20 ? item.product.id : null,
+            product_name: item.product.name,
+            quantity: item.quantity,
+            price: item.product.price,
+            subtotal: item.product.price * item.quantity,
+          }))
+          const { error: itemsErr } = await supabase.from('order_items').insert(items)
+          if (itemsErr) console.error('order_items insert failed:', itemsErr)
+        }
+      } catch (err: any) {
+        console.error('Order save failed:', err)
+        setSubmitError(err?.message || 'Could not save order. Please try again or contact us via WhatsApp.')
+        setIsSubmitting(false)
+        return
+      }
+    }
+
     clearCart()
-    
-    // Redirect to order success page
-    router.push(`/order-success?orderId=${orderId}`)
+    router.push(`/order-success?orderId=${orderNumber}`)
   }
 
   useEffect(() => {
@@ -251,12 +297,17 @@ export default function CheckoutPage() {
                   </label>
                 </div>
 
+                {submitError && (
+                  <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                    {submitError}
+                  </div>
+                )}
                 <button
                   type="submit"
                   disabled={isSubmitting}
                   className="w-full bg-primary text-white py-4 rounded-xl font-semibold hover:bg-primary-dark transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary hover:shadow-lg hover:shadow-primary/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 min-h-[48px]"
                 >
-                  {isSubmitting ? 'Processing...' : 'Place Order'}
+                  {isSubmitting ? 'Placing your order...' : 'Place Order'}
                 </button>
               </form>
             </div>

@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic'
 import React, { useState, useEffect } from 'react'
 import { Package, Calendar, User, Phone, Mail, MapPin, IndianRupee, Search, Filter, Download, Eye } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
+import { useToast } from '@/components/ToastProvider'
 
 interface Order {
   id: string
@@ -25,6 +26,7 @@ interface Order {
 }
 
 export default function AdminOrdersPage() {
+  const { showToast } = useToast()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -90,10 +92,11 @@ export default function AdminOrdersPage() {
         .eq('id', orderId)
 
       if (error) throw error
+      showToast('success', `Order marked as ${newStatus}`)
       loadOrders()
-    } catch (error) {
-      console.error('Error updating order status:', error)
-      alert('Error updating order status. Please try again.')
+    } catch (err: any) {
+      console.error('Error updating order status:', err)
+      showToast('error', err?.message || 'Could not update order status')
     }
   }
 

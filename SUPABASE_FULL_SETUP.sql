@@ -259,6 +259,33 @@ CREATE POLICY "Authenticated full access leads" ON leads
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
 -- ============================================================================
+-- STORAGE BUCKET FOR PRODUCT IMAGES
+-- ============================================================================
+-- This creates the "gsons-images" bucket used by admin product image uploads.
+-- If this errors out (older Supabase) create it manually in Storage UI:
+--   Bucket name: gsons-images   |   Public: ON
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('gsons-images', 'gsons-images', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+-- Public read access to images
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Public read gsons-images" ON storage.objects;
+  DROP POLICY IF EXISTS "Authenticated upload gsons-images" ON storage.objects;
+  DROP POLICY IF EXISTS "Authenticated update gsons-images" ON storage.objects;
+  DROP POLICY IF EXISTS "Authenticated delete gsons-images" ON storage.objects;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
+CREATE POLICY "Public read gsons-images" ON storage.objects
+  FOR SELECT USING (bucket_id = 'gsons-images');
+CREATE POLICY "Authenticated upload gsons-images" ON storage.objects
+  FOR INSERT TO authenticated WITH CHECK (bucket_id = 'gsons-images');
+CREATE POLICY "Authenticated update gsons-images" ON storage.objects
+  FOR UPDATE TO authenticated USING (bucket_id = 'gsons-images') WITH CHECK (bucket_id = 'gsons-images');
+CREATE POLICY "Authenticated delete gsons-images" ON storage.objects
+  FOR DELETE TO authenticated USING (bucket_id = 'gsons-images');
+
+-- ============================================================================
 -- DONE
 -- ============================================================================
 -- Next steps:

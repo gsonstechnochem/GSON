@@ -11,16 +11,13 @@ import {
   HelpCircle,
   Settings,
   Home,
-  Plus,
   ArrowRight,
   RefreshCw,
-  CheckCircle,
   AlertCircle,
   Loader2,
   Users,
   Inbox,
   IndianRupee,
-  Clock,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabaseClient'
 import { syncWebsiteData } from '@/lib/supabaseHelpers'
@@ -159,15 +156,13 @@ export default function AdminDashboardPage() {
     }
   }
 
-  const cards: { label: string; value: string | number; icon: any; color: string; href?: string }[] = [
-    { label: 'Total Products',  value: stats.totalProducts,  icon: Package,        color: 'bg-primary/10 text-primary',     href: '/admin/products' },
-    { label: 'Active Products', value: stats.activeProducts, icon: CheckCircle,    color: 'bg-green-100 text-green-600',    href: '/admin/products' },
-    { label: 'Testimonials',    value: stats.testimonials,   icon: MessageSquare,  color: 'bg-purple-100 text-purple-600',  href: '/admin/testimonials' },
-    { label: 'Total Orders',    value: stats.totalOrders,    icon: ShoppingCart,   color: 'bg-blue-100 text-blue-600',      href: '/admin/orders' },
-    { label: 'Pending Orders',  value: stats.pendingOrders,  icon: Clock,          color: 'bg-orange-100 text-orange-600',  href: '/admin/orders' },
-    { label: 'Customers',       value: stats.customers,      icon: Users,          color: 'bg-teal-100 text-teal-600',      href: '/admin/customers' },
-    { label: 'Leads',           value: stats.leads,          icon: Inbox,          color: 'bg-pink-100 text-pink-600',      href: '/admin/leads' },
-    { label: 'Revenue',         value: `₹${stats.revenue.toLocaleString('en-IN')}`, icon: IndianRupee, color: 'bg-yellow-100 text-yellow-700', href: '/admin/orders' },
+  const cards: { label: string; value: string | number; sub?: string; icon: any; color: string; href?: string }[] = [
+    { label: 'Products',     value: stats.totalProducts, sub: `${stats.activeProducts} active`,                  icon: Package,       color: 'bg-primary/10 text-primary',     href: '/admin/products' },
+    { label: 'Orders',       value: stats.totalOrders,   sub: `${stats.pendingOrders} pending`,                  icon: ShoppingCart,  color: 'bg-blue-100 text-blue-600',      href: '/admin/orders' },
+    { label: 'Revenue',      value: `₹${stats.revenue.toLocaleString('en-IN')}`,                                 icon: IndianRupee,   color: 'bg-yellow-100 text-yellow-700',  href: '/admin/orders' },
+    { label: 'Customers',    value: stats.customers,                                                             icon: Users,         color: 'bg-teal-100 text-teal-600',      href: '/admin/customers' },
+    { label: 'Leads',        value: stats.leads,                                                                 icon: Inbox,         color: 'bg-pink-100 text-pink-600',      href: '/admin/leads' },
+    { label: 'Testimonials', value: stats.testimonials,                                                          icon: MessageSquare, color: 'bg-purple-100 text-purple-600',  href: '/admin/testimonials' },
   ]
 
   const quickActions = [
@@ -233,7 +228,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8">
         {cards.map((c) => (
           <Link
             key={c.label}
@@ -245,6 +240,9 @@ export default function AdminDashboardPage() {
             </div>
             <p className="text-2xl md:text-3xl font-bold text-dark">{c.value}</p>
             <p className="text-xs md:text-sm text-gray-600 mt-1">{c.label}</p>
+            {c.sub && (
+              <p className="text-[11px] text-gray-400 mt-1">{c.sub}</p>
+            )}
           </Link>
         ))}
       </div>

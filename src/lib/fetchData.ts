@@ -80,6 +80,37 @@ export async function fetchProductsWithFallback() {
   }
 }
 
+export async function fetchFeaturedProductsWithFallback(limit = 4) {
+  if (!isSupabaseConfigured()) {
+    return staticProducts.filter(p => p.featured).slice(0, limit)
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('active', true)
+      .eq('featured', true)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) throw error
+    if (data && data.length > 0) return data.map(normalizeProduct)
+    // fall back: any active products if none flagged featured yet
+    const { data: anyActive } = await supabase
+      .from('products')
+      .select('*')
+      .eq('active', true)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    if (anyActive && anyActive.length > 0) return anyActive.map(normalizeProduct)
+    return staticProducts.filter(p => p.featured).slice(0, limit)
+  } catch (error) {
+    console.error('Error fetching featured products from Supabase, using fallback:', error)
+    return staticProducts.filter(p => p.featured).slice(0, limit)
+  }
+}
+
 export async function fetchTestimonialsWithFallback() {
   if (!isSupabaseConfigured()) {
     return staticTestimonials
