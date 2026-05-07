@@ -1,10 +1,11 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Product } from '@/data/products'
 import { useCart } from './CartProvider'
-import { ShoppingCart, MessageCircle, Eye, ArrowRight } from 'lucide-react'
+import { useToast } from './ToastProvider'
+import { ShoppingCart, MessageCircle, Eye, ArrowRight, Check } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 
 interface ProductCardProps {
@@ -13,10 +14,15 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart()
+  const { showToast } = useToast()
+  const [added, setAdded] = useState(false)
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     addToCart(product)
+    setAdded(true)
+    showToast('success', 'Product added to cart')
+    setTimeout(() => setAdded(false), 2000)
   }
 
   const whatsappMessage = `Hello G Son's Technochem, I want to inquire about ${product.name}.`
@@ -72,10 +78,20 @@ export default function ProductCard({ product }: ProductCardProps) {
           </Link>
           <button
             onClick={handleAddToCart}
-            className="flex items-center justify-center bg-primary text-white py-4 rounded-xl hover:bg-primary-dark transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary hover:shadow-lg hover:shadow-primary/30 text-sm font-semibold min-h-[44px]"
+            disabled={added}
+            className="flex items-center justify-center bg-primary text-white py-4 rounded-xl hover:bg-primary-dark transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary hover:shadow-lg hover:shadow-primary/30 text-sm font-semibold min-h-[44px] disabled:bg-green-500 disabled:cursor-default"
           >
-            <ShoppingCart className="w-4 h-4 mr-1" />
-            <span className="hidden sm:inline">Add</span>
+            {added ? (
+              <>
+                <Check className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">Added</span>
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">Add</span>
+              </>
+            )}
           </button>
           <a
             href={whatsappLink}

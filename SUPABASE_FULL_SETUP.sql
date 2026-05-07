@@ -240,15 +240,15 @@ CREATE POLICY "Public can view contact_settings" ON contact_settings
 CREATE POLICY "Authenticated full access contact_set" ON contact_settings
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
--- orders: public can INSERT (checkout), only authenticated can read/update
+-- orders: public (anon) can INSERT for checkout, authenticated users can do everything
 CREATE POLICY "Public can insert orders" ON orders
-  FOR INSERT WITH CHECK (true);
+  FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Authenticated full access orders" ON orders
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 
--- order_items: same pattern
+-- order_items: same pattern - public insert, authenticated full access
 CREATE POLICY "Public can insert order_items" ON order_items
-  FOR INSERT WITH CHECK (true);
+  FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Authenticated full access order_items" ON order_items
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 

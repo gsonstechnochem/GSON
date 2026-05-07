@@ -272,28 +272,28 @@ export default function CheckoutPage() {
                 <h2 className="text-xl font-bold text-dark mb-6">Payment Method</h2>
                 
                 <div className="space-y-3 mb-8">
-                  <label className="flex items-center p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-primary transition-all hover:bg-primary/5">
+                  <label className="flex items-center p-3 sm:p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-primary transition-all hover:bg-primary/5">
                     <input
                       type="radio"
                       name="paymentMethod"
                       value="cod"
                       checked={formData.paymentMethod === 'cod'}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-primary"
+                      className="w-4 h-4 text-primary flex-shrink-0"
                     />
-                    <span className="ml-3 font-medium text-dark">Cash on Delivery (COD)</span>
+                    <span className="ml-3 font-medium text-dark text-sm sm:text-base">Cash on Delivery (COD)</span>
                   </label>
-                  <label className="flex items-center p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-primary transition-all hover:bg-primary/5">
+                  <label className="flex items-center p-3 sm:p-4 border border-gray-200 rounded-xl cursor-pointer hover:border-primary transition-all hover:bg-primary/5">
                     <input
                       type="radio"
                       name="paymentMethod"
                       value="online"
                       checked={formData.paymentMethod === 'online'}
                       onChange={handleInputChange}
-                      className="w-4 h-4 text-primary"
+                      className="w-4 h-4 text-primary flex-shrink-0"
                     />
-                    <span className="ml-3 font-medium text-dark">Online Payment (Razorpay)</span>
-                    <CreditCard className="w-5 h-5 ml-auto text-gray-400" />
+                    <span className="ml-3 font-medium text-dark text-sm sm:text-base flex-1">Online Payment (Razorpay)</span>
+                    <CreditCard className="w-5 h-5 ml-2 text-gray-400 flex-shrink-0" />
                   </label>
                 </div>
 
@@ -317,13 +317,13 @@ export default function CheckoutPage() {
               <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-24">
                 <h2 className="text-xl font-bold text-dark mb-6">Order Summary</h2>
                 
-                <div className="space-y-4 mb-6">
+                <div className="space-y-3 sm:space-y-4 mb-6">
                   {cart.map((item) => (
-                    <div key={item.product.id} className="flex justify-between text-sm">
-                      <span className="text-gray-600">
+                    <div key={item.product.id} className="flex justify-between items-start text-sm gap-2">
+                      <span className="text-gray-600 flex-1 break-words">
                         {item.product.name} x {item.quantity}
                       </span>
-                      <span className="font-medium">
+                      <span className="font-medium flex-shrink-0">
                         {formatPrice(item.product.price * item.quantity)}
                       </span>
                     </div>

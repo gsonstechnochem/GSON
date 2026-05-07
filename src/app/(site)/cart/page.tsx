@@ -46,9 +46,9 @@ export default function CartPage() {
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               {cart.map((item) => (
-                <div key={item.product.id} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                  <div className="flex gap-6">
-                    <div className="relative w-28 h-28 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                <div key={item.product.id} className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
+                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+                    <div className="relative w-20 h-20 sm:w-28 sm:h-28 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl overflow-hidden flex-shrink-0 mx-auto sm:mx-0">
                       <Image
                         src={item.product.image}
                         alt={item.product.name}
@@ -56,49 +56,51 @@ export default function CartPage() {
                         className="object-cover"
                       />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 w-full">
                       <Link
                         href={`/products/${item.product.slug}`}
-                        className="font-bold text-dark hover:text-primary transition-colors text-lg mb-1"
+                        className="font-bold text-dark hover:text-primary transition-colors text-base sm:text-lg mb-1 block"
                       >
                         {item.product.name}
                       </Link>
-                      <p className="text-sm text-gray-600 mb-2">{item.product.category}</p>
-                      <p className="text-sm text-gray-500 mb-4">{item.product.packSize}</p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                      <p className="text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">{item.product.category}</p>
+                      <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-4">{item.product.packSize}</p>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3">
                           <button
                             onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                            className="w-11 h-11 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="w-9 h-9 sm:w-11 sm:h-11 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary"
                             aria-label="Decrease quantity"
                           >
                             <Minus className="w-4 h-4" />
                           </button>
-                          <span className="w-10 text-center font-semibold text-lg">{item.quantity}</span>
+                          <span className="w-8 sm:w-10 text-center font-semibold text-base sm:text-lg">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                            className="w-11 h-11 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="w-9 h-9 sm:w-11 sm:h-11 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary"
                             aria-label="Increase quantity"
                           >
                             <Plus className="w-4 h-4" />
                           </button>
                         </div>
-                        <button
-                          onClick={() => removeFromCart(item.product.id)}
-                          className="text-red-500 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-lg transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-500"
-                          aria-label="Remove item"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                        <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6">
+                          <button
+                            onClick={() => removeFromCart(item.product.id)}
+                            className="text-red-500 hover:text-red-600 transition-colors p-2 hover:bg-red-50 rounded-lg transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-500"
+                            aria-label="Remove item"
+                          >
+                            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </button>
+                          <div className="text-right">
+                            <p className="font-bold text-primary text-base sm:text-xl">
+                              {formatPrice(item.product.price * item.quantity)}
+                            </p>
+                            <p className="text-xs sm:text-sm text-gray-500">
+                              {formatPrice(item.product.price)} each
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-primary text-xl">
-                        {formatPrice(item.product.price * item.quantity)}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {formatPrice(item.product.price)} each
-                      </p>
                     </div>
                   </div>
                 </div>
